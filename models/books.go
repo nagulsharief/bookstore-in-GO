@@ -1,5 +1,5 @@
 package models
-
+// Book model
 type Book struct {
     Isbn   string
     Title  string
@@ -7,6 +7,9 @@ type Book struct {
     Price  float32
 }
 
+/**
+Book DAO to deal with DB opertaions 
+*/
 func GetAllBooks() ([]*Book, error) {
     rows, err := db.Query("SELECT * FROM books")
     if err != nil {
@@ -36,8 +39,8 @@ func GetBook(isbn string) (*Book, error) {
     return bk,err
 }
 
-func CreateBook(isbn string, title string, author string, price float64) (int64, error) {
-  result, err := db.Exec("INSERT INTO books VALUES(?, ?, ?, ?)", isbn, title, author, price)
+func CreateBook(book Book) (int64, error) {
+  result, err := db.Exec("INSERT INTO books VALUES(?, ?, ?, ?)", book.Isbn, book.Title, book.Author, book.Price)
   if err != nil {
         return 0, err
     }
