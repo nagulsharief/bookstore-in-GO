@@ -1,65 +1,47 @@
 package models
+
+import (
+//    "github.com/jinzhu/gorm"
+)
+
 // Book model
 type Book struct {
-    Isbn   string
-    Title  string
-    Author string
-    Price  float32
+//	gorm.Model
+    Isbn   string  `json:"isbn" binding:"required"`
+    Title  string `json:"title" binding:"required"`
+    Author string `json:"author" binding:"required"`
+    Price  float32 `json:"price" binding:"required"`
 }
 
 /**
 Book DAO to deal with DB opertaions 
 */
-func GetAllBooks() ([]*Book, error) {
-    rows, err := db.Query("SELECT * FROM books")
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-
-    bks := make([]*Book, 0)
-    for rows.Next() {
-        bk := new(Book)
-        err := rows.Scan(&bk.Isbn, &bk.Title, &bk.Author, &bk.Price)
-        if err != nil {
-            return nil, err
-        }
-        bks = append(bks, bk)
-    }
-    if err = rows.Err(); err != nil {
-        return nil, err
-    }
-    return bks, nil
+func GetAllBooks() ([]Book) {
+	// Query multiple records
+	books := []Book{}
+	db.Find(&books)
+    return books
 }
 
-func GetBook(isbn string) (*Book, error) {
-  row := db.QueryRow("SELECT * FROM books WHERE isbn = ?", isbn)
-  bk := new(Book)
-  err := row.Scan(&bk.Isbn, &bk.Title, &bk.Author, &bk.Price)
-    return bk,err
+func GetBook(isbn string) (Book) {
+  var book Book
+// Read
+   db.First(&book, "isbn = ?", isbn)// find product with id 
+   
+ return book
 }
 
-func CreateBook(book Book) (int64, error) {
-  result, err := db.Exec("INSERT INTO books VALUES(?, ?, ?, ?)", book.Isbn, book.Title, book.Author, book.Price)
-  if err != nil {
-        return 0, err
-    }
-  rowsAffected, err := result.RowsAffected()
-   if err != nil {
-        return 0, err
-    }
-   return rowsAffected,err
+func CreateBook(book Book) {
+	  db.Create(&book)
 }
 
-func DeleteBook(isbn string) (int64, error) {
-  result, err := db.Exec("DELETE FROM books WHERE isbn = ?", isbn)
-  if err != nil {
-        return 0, err
-    }
-  rowsAffected, err := result.RowsAffected()
-   if err != nil {
-        return 0, err
-    }
-   return rowsAffected,err
+func UpdateBook(book Book) {
+	  // Update multiple attributes with `struct`, will only update those changed & non blank fields
+	db.Model(&book).Updates(Book{Title: book.Title,Author: book.Author, Price: book.Price})
+}
+
+func DeleteBook(isbn string)  {
+	book := GetBook(isbn)
+	db.Where("Isbn = ?", isbn).Delete(&book)
 }
 
